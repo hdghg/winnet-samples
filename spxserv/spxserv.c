@@ -1,25 +1,28 @@
-// spxserv.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
-#include "common.h"
-#include "conv.h"
 
+#include <winsock2.h>
+
+#include "conv.h"
+#include "loop.h"
+
+#pragma comment(lib, "WS2_32")
 
 int main(int argc, char **argv) {
-    int i;
-    char dest[9];
-    char dest2[22];
-    unsigned char addr[4] = {1, 11, 97, 164};
-    unsigned char addr2[6] = {1, 11, 97, 164, 2, 2};
-    for (i=0; i < 4 ;i++) {
-        sprintf((char *) &dest + 2 * i, "%02X", addr[i]);
+    WSADATA wsd;
+    if (WSAStartup(MAKEWORD(2,2), &wsd) != 0) {
+        printf("WSAStartup() failed with error code %ld\n", GetLastError());
+        return -1;
     }
-    printf("%s\n", dest);
-    IpxAddressToA((char *) &dest2, addr, addr2);
-    printf("%s\n", dest2);
+    printf("WSAStartup() is OK!\n");
 
-    printf("\nFour: %d\n", getFour());
+    ServerMainLoop();
+
+    if(WSACleanup() == 0) {
+        printf("WSACleanup() is OK!\n");
+    } else {
+        printf("WSACleanup() failed with error code %ld\n",WSAGetLastError());
+    }
+    printf("Press ENTER to exit...");
     getchar();
     return 0;
 }

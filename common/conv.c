@@ -40,5 +40,4 @@ void IpxAddressToA(char *dest, unsigned char *lpsNetnum, unsigned char *lpsNoden
     for (i=0; i < 6 ;i++) {
         sprintf((char *) dest + 2 * i + 9, "%02X", (UCHAR) lpsNodenum[i]);
     }
-    //printf("\n");
 }
