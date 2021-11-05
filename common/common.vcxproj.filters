@@ -32,9 +32,6 @@
     <ClCompile Include="common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
