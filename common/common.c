@@ -2,8 +2,3 @@
 //
 
 #include "stdafx.h"
-
-
-int getFour() {
-    return 4;
-}

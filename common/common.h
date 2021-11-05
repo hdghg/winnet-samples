@@ -2,6 +2,6 @@
 #define COMMON_H
 #include "stdafx.h"
 
-int getFour();
+#define MAX_DATA_LEN 64000
 
 #endif
