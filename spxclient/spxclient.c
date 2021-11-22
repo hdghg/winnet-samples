@@ -1,12 +1,33 @@
-// spxclient.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 
+#include <winsock2.h>
 
-int main(int argc, char **argv)
-{
-    printf("Stub works. Press ENTER key...\n");
+#include "conv.h"
+#include "args.h"
+
+#pragma comment(lib, "WS2_32")
+
+char *defaultAddress = "";
+
+int main(int argc, char **argv) {
+    WSADATA wsd;
+    char **serverAddress = &defaultAddress;
+    if (WSAStartup(MAKEWORD(2,2), &wsd) != 0) {
+        printf("WSAStartup() failed with error code %ld\n", GetLastError());
+        return -1;
+    }
+    printf("WSAStartup() is OK!\n");
+
+    ParseArgs(serverAddress, argc, argv);
+
+    printf("Server address: %s\n", *serverAddress);
+
+    if(WSACleanup() == 0) {
+        printf("WSACleanup() is OK!\n");
+    } else {
+        printf("WSACleanup() failed with error code %ld\n",WSAGetLastError());
+    }
+    printf("Press ENTER to exit...");
     getchar();
     return 0;
 }

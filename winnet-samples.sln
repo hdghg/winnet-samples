@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spxserv", "spxserv\spxserv.vcxproj", "{72F0EF8D-F3DF-4183-AD3E-F9A3E2AA2920}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spxclient", "spxclient\spxclient.vcxproj", "{18A17FBA-DA09-4717-A104-A6F7E0B61152}"
+	ProjectSection(ProjectDependencies) = postProject
+		{12D893F0-206A-48DE-AF94-9FA0D5397E5C} = {12D893F0-206A-48DE-AF94-9FA0D5397E5C}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\common.vcxproj", "{12D893F0-206A-48DE-AF94-9FA0D5397E5C}"
 EndProject
