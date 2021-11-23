@@ -4,4 +4,6 @@
 
 #define MAX_DATA_LEN 64000
 
+int EnumerateAdapters(SOCKET *sock);
+
 #endif

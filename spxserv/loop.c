@@ -145,6 +145,9 @@ void mainLoop(SOCKET *serverSocket) {
     } else {
         printf("BindSocket() failed!\n");
     }
+    if (0 != EnumerateAdapters(serverSocket)) {
+        printf("Could not enumerate adapters\n");
+    }
     ret = /*WinSock2.*/listen(*serverSocket, SOMAXCONN);
     if (ret == SOCKET_ERROR) {
         printf("listen() failed with error code %ld\n", WSAGetLastError());
