@@ -24,6 +24,9 @@
     <ClInclude Include="args.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="spxclientloop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="spxclient.c">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="args.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spxclientloop.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

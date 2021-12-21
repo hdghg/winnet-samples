@@ -27,6 +27,9 @@
     <ClInclude Include="conv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sendreceive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.c">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="conv.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sendreceive.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

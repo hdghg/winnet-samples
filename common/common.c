@@ -1,6 +1,3 @@
-// common.cpp : Defines the exported functions for the DLL application.
-//
-
 #include "stdafx.h"
 
 #include <winsock2.h>
@@ -9,12 +6,88 @@
 
 #include "conv.h"
 
+// Function: CreateSocket
+// Description:
+//    creates the main socket (i.e. the listening socket for the
+//    server and the connecting socket for the client).
+//    SPX sockets use either SOCK_STREAM or SOCK_SEQPACKET but must
+//    be of the protocol NSPROTO_SPX or NSPROTO_SPXII.
+//    IPX sockets must use SOCK_DGRAM and NSPROTO_IPX.
+int CreateSocket(SOCKET *sock) {
+    *sock = /*WinSock2.*/socket(AF_IPX, SOCK_DGRAM, NSPROTO_IPX);
+    if (INVALID_SOCKET == *sock) {
+        printf("socket() failed with error code %ld\n", WSAGetLastError());
+        return -1;
+    }
+    printf("socket() looks fine!\n");
+    return 0;
+}
+
+// Function: FillIpxAddress
+// Description:
+//    FillIpxAddress() fills a structure of type SOCKADDR_IPX
+//    with relevant address-family, network number, node number
+//    and socket (endpoint) parameters
+void FillIpxAddress(__out SOCKADDR_IPX *socketAddress, __in LPSTR address, __in LPSTR endpoint) {
+    LPSTR pszPoint;
+    /*WinBase.*/ZeroMemory(socketAddress, sizeof(SOCKADDR_IPX));
+    socketAddress->sa_family = AF_IPX;
+
+    // Check if an address is specified
+    if (NULL != address) {
+        // Get the offset for node number/network number separator
+        pszPoint = /*string.*/strchr(address, '.');
+        if (NULL == pszPoint) {
+            printf("IPX address does not have a separator\n");
+            return;
+        }
+        // convert the address in the  string format to binary format
+        AtoH((char *)socketAddress->sa_netnum,  address, 4);
+        AtoH((char *)socketAddress->sa_nodenum, pszPoint + 1, 6);
+    }
+    if (NULL != endpoint) {
+        socketAddress->sa_socket = (USHORT)/*stdlib.*/atoi(endpoint);
+    }
+}
+
+// Function: BindSocket
+// Description:
+//    BindSocket() binds a socket descriptor 'sock' to
+//    the specified address. If an endpoint is specified it uses
+//    that or it binds to a system  assigned port.
+int BindSocket(SOCKET *sock, __out SOCKADDR_IPX *psa, __in LPSTR address, __in LPSTR endpoint) {
+    int ret, len;
+    char boundAddressStr[22];
+    // Fill the givenSOCKADDR_IPX structure
+    FillIpxAddress(psa, address, endpoint);
+
+    ret = /*WinSock2.*/bind(*sock, (SOCKADDR *) psa, sizeof(SOCKADDR_IPX));
+    if (SOCKET_ERROR == ret) {
+        printf("bind() failed with error code %ld\n", WSAGetLastError());
+        return -1;
+    }
+    printf("bind() is OK...\n");
+
+    // Print the address we are bound to. If a particular interface is not
+    // mentioned in the BindSocket() call, this may print the address as
+    // 00000000.0000000000000000. This is because of the fact that an
+    // interface is picked only when the actual connection establishment
+    // occurs, in case of connection oriented socket
+    len = sizeof(SOCKADDR_IPX);
+    getsockname(*sock, (SOCKADDR *)psa, &len);
+    IpxAddressToA(boundAddressStr, (unsigned char *) psa->sa_netnum, (unsigned char *) psa->sa_nodenum);
+    printf("Bound to Local Address: %s\n", boundAddressStr);
+    return 0;
+}
+
+
+
+// Print all available adapters for the socket. Only works with datagram socket
 int EnumerateAdapters(SOCKET *sock) {
     SOCKADDR_IPX     sa_ipx;
     IPX_ADDRESS_DATA ipx_data;
     int              ret, cb, nAdapters, i=0;
     char             boundAddressStr[22];
-
 
     // Call getsockopt() see the total number of adapters
     cb = sizeof(nAdapters);
@@ -42,4 +115,5 @@ int EnumerateAdapters(SOCKET *sock) {
         printf("%d: %s\n", i, boundAddressStr);
         //PrintIpxAddress((char *) ipx_data.netnum, (char *) ipx_data.nodenum);
     }
+    return 0;
 }

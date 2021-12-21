@@ -4,6 +4,7 @@
 
 #include "conv.h"
 #include "args.h"
+#include "spxclientloop.h"
 
 #pragma comment(lib, "WS2_32")
 
@@ -22,10 +23,12 @@ int main(int argc, char **argv) {
 
     printf("Server address: %s\n", *serverAddress);
 
+    ClientMainLoop(*serverAddress);
+
     if(WSACleanup() == 0) {
         printf("WSACleanup() is OK!\n");
     } else {
-        printf("WSACleanup() failed with error code %ld\n",WSAGetLastError());
+        printf("WSACleanup() failed with error code %ld\n", WSAGetLastError());
     }
     printf("Press ENTER to exit...");
     getchar();
