@@ -13,8 +13,8 @@
 //    SPX sockets use either SOCK_STREAM or SOCK_SEQPACKET but must
 //    be of the protocol NSPROTO_SPX or NSPROTO_SPXII.
 //    IPX sockets must use SOCK_DGRAM and NSPROTO_IPX.
-int CreateSocket(SOCKET *sock) {
-    *sock = /*WinSock2.*/socket(AF_IPX, SOCK_DGRAM, NSPROTO_IPX);
+int CreateSocket(__out SOCKET *sock, __in int type, __in int protocol) {
+    *sock = /*WinSock2.*/socket(AF_IPX, type, protocol);
     if (INVALID_SOCKET == *sock) {
         printf("socket() failed with error code %ld\n", WSAGetLastError());
         return -1;

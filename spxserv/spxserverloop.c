@@ -17,8 +17,7 @@ void mainLoop(SOCKET *serverSocket) {
     char *pszServerEndpoint = "7171";                         // Server's endpoint (socket) string
     SOCKET newsock;
 
-
-    if(0 != CreateSocket(serverSocket)){
+    if(0 != CreateSocket(serverSocket, SOCK_STREAM, NSPROTO_SPX)){
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return;
     }
@@ -28,9 +27,6 @@ void mainLoop(SOCKET *serverSocket) {
         printf("BindSocket() is OK!\n");
     } else {
         printf("BindSocket() failed!\n");
-    }
-    if (0 != EnumerateAdapters(serverSocket)) {
-        printf("Could not enumerate adapters\n");
     }
     ret = /*WinSock2.*/listen(*serverSocket, SOMAXCONN);
     if (ret == SOCKET_ERROR) {

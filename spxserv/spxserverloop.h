@@ -1,5 +1,5 @@
-#ifndef LOOP_H
-#define LOOP_H
+#ifndef SPXSERVERLOOP_H
+#define SPXSERVERLOOP_H
 #include "stdafx.h"
 
 void ServerMainLoop();

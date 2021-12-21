@@ -17,7 +17,7 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
     char *serverEndpoint = "7171";
     //char serverAddress[22];
 
-    if(0 != CreateSocket(socket)) {
+    if(0 != CreateSocket(socket, SOCK_STREAM, NSPROTO_SPX)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }

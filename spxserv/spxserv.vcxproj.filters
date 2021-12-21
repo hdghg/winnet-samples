@@ -21,7 +21,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="loop.h">
+    <ClInclude Include="spxserverloop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,7 +32,7 @@
     <ClCompile Include="stdafx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="loop.c">
+    <ClCompile Include="spxserverloop.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
