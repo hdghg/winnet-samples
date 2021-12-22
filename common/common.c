@@ -96,7 +96,7 @@ int EnumerateAdapters(SOCKET *sock) {
         printf("getsockopt(IPX_MAX_ADAPTER_NUM) failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
-    printf("getsockopt(IPX_MAX_ADAPTER_NUM) is OK. Total number of adapters: %d\n", nAdapters);
+    printf("Total number of adapters: %d\n", nAdapters);
     // Get the address of each adapter
     for (i=0; i<nAdapters; i++) {
         memset(&ipx_data, 0, sizeof(ipx_data));
@@ -108,7 +108,6 @@ int EnumerateAdapters(SOCKET *sock) {
             printf("getsockopt(IPX_ADDRESS) failed with error code %ld\n", WSAGetLastError());
             return -1;
         }
-        printf("getsockopt(IPX_ADDRESS) #%d is OK...\n", i);
 
         // Print each address
         IpxAddressToA(boundAddressStr, (unsigned char *) ipx_data.netnum, (unsigned char *) ipx_data.nodenum);
