@@ -28,26 +28,35 @@ int CreateSocket(__out SOCKET *sock, __in int type, __in int protocol) {
 //    FillIpxAddress() fills a structure of type SOCKADDR_IPX
 //    with relevant address-family, network number, node number
 //    and socket (endpoint) parameters
-void FillIpxAddress(__out SOCKADDR_IPX *socketAddress, __in LPSTR address, __in LPSTR endpoint) {
-    LPSTR pszPoint;
+void FillIpxAddress(
+        __out SOCKADDR_IPX *socketAddress,
+        __in char *address,
+        __in char *endpoint) {
+    char *periodPosition;
     /*WinBase.*/ZeroMemory(socketAddress, sizeof(SOCKADDR_IPX));
     socketAddress->sa_family = AF_IPX;
 
     // Check if an address is specified
     if (NULL != address) {
         // Get the offset for node number/network number separator
-        pszPoint = /*string.*/strchr(address, '.');
-        if (NULL == pszPoint) {
+        periodPosition = /*string.*/strchr(address, '.');
+        if (NULL == periodPosition) {
             printf("IPX address does not have a separator\n");
             return;
         }
         // convert the address in the  string format to binary format
         AtoH((char *)socketAddress->sa_netnum,  address, 4);
-        AtoH((char *)socketAddress->sa_nodenum, pszPoint + 1, 6);
+        AtoH((char *)socketAddress->sa_nodenum, periodPosition + 1, 6);
     }
     if (NULL != endpoint) {
         socketAddress->sa_socket = (USHORT)/*stdlib.*/atoi(endpoint);
     }
+}
+
+void SockaddrIpxToA(char *dest, SOCKADDR_IPX ipxAddress) {
+    unsigned char *netNumber = (unsigned char *) ipxAddress.sa_netnum;
+    unsigned char *nodeNumber = (unsigned char *) ipxAddress.sa_nodenum;
+    IpxAddressToA(dest, netNumber, nodeNumber);
 }
 
 // Function: BindSocket
@@ -55,14 +64,16 @@ void FillIpxAddress(__out SOCKADDR_IPX *socketAddress, __in LPSTR address, __in 
 //    BindSocket() binds a socket descriptor 'sock' to
 //    the specified address. If an endpoint is specified it uses
 //    that or it binds to a system  assigned port.
-int BindSocket(SOCKET *sock, __out SOCKADDR_IPX *psa, __in LPSTR address, __in LPSTR endpoint) {
-    int ret, len;
+int BindSocket(
+        __in SOCKET *socket,
+        __out SOCKADDR_IPX *ipxAddress,
+        __in char *address,
+        __in char *endpoint) {
+    int ipxAddressSize = sizeof(SOCKADDR_IPX);
     char boundAddressStr[22];
-    // Fill the givenSOCKADDR_IPX structure
-    FillIpxAddress(psa, address, endpoint);
+    FillIpxAddress(ipxAddress, address, endpoint);
 
-    ret = /*WinSock2.*/bind(*sock, (SOCKADDR *) psa, sizeof(SOCKADDR_IPX));
-    if (SOCKET_ERROR == ret) {
+    if (SOCKET_ERROR == /*WinSock2.*/bind(*socket, (SOCKADDR *) ipxAddress, sizeof(SOCKADDR_IPX))) {
         printf("bind() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
@@ -73,9 +84,8 @@ int BindSocket(SOCKET *sock, __out SOCKADDR_IPX *psa, __in LPSTR address, __in L
     // 00000000.0000000000000000. This is because of the fact that an
     // interface is picked only when the actual connection establishment
     // occurs, in case of connection oriented socket
-    len = sizeof(SOCKADDR_IPX);
-    getsockname(*sock, (SOCKADDR *)psa, &len);
-    IpxAddressToA(boundAddressStr, (unsigned char *) psa->sa_netnum, (unsigned char *) psa->sa_nodenum);
+    /*WinSock2.*/getsockname(*socket, (SOCKADDR *)ipxAddress, &ipxAddressSize);
+    SockaddrIpxToA(boundAddressStr, *ipxAddress);
     printf("Bound to Local Address: %s\n", boundAddressStr);
     return 0;
 }

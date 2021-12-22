@@ -8,14 +8,15 @@
 #include "sendreceive.h"
 
 void mainLoop(SOCKET *serverSocket) {
-    SOCKADDR_IPX sa_ipx;  // Server address
-    SOCKADDR_IPX peerAddress; // Client address
-    char chBuffer[MAX_DATA_LEN]; // Data buffer
+    int ipxAddressSize = sizeof(SOCKADDR_IPX);
+    SOCKADDR_IPX serverIpxAddress;
+    SOCKADDR_IPX clientIpxAddress;
+    int bytesExchanged;
+    char byteBuffer[MAX_DATA_LEN];
     char peerAddressStr[22];
-    int ret,cb;
-    char *pszLocalAddress = NULL;                           // Local IPX address string
-    char *pszServerEndpoint = "7171";                         // Server's endpoint (socket) string
-    SOCKET newsock;
+    char *serverAddressStr = NULL;
+    char *serverEndpointStr = "7171";
+    SOCKET clientSocket;
 
     if(0 != CreateSocket(serverSocket, SOCK_STREAM, NSPROTO_SPX)){
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
@@ -23,13 +24,13 @@ void mainLoop(SOCKET *serverSocket) {
     }
     printf("CreateSocket() is OK...\n");
     // Bind to a local address and endpoint
-    if(0 == BindSocket(serverSocket, &sa_ipx, pszLocalAddress, pszServerEndpoint)) {
-        printf("BindSocket() is OK!\n");
-    } else {
+    if(0 != BindSocket(serverSocket, &serverIpxAddress, serverAddressStr, serverEndpointStr)) {
         printf("BindSocket() failed!\n");
+        return;
     }
-    ret = /*WinSock2.*/listen(*serverSocket, SOMAXCONN);
-    if (ret == SOCKET_ERROR) {
+    printf("BindSocket() is OK!\n");
+
+    if (SOCKET_ERROR == /*WinSock2.*/listen(*serverSocket, SOMAXCONN)) {
         printf("listen() failed with error code %ld\n", WSAGetLastError());
     } else {
         printf("listen() looks fine!\n");
@@ -37,38 +38,36 @@ void mainLoop(SOCKET *serverSocket) {
     }
 
     while (1) {
-        cb = sizeof(peerAddress);
-        newsock = /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &peerAddress, &cb);
-        if (newsock == INVALID_SOCKET) {
+        clientSocket = /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
+        if (clientSocket == INVALID_SOCKET) {
             printf("accept() failed: %d\n", WSAGetLastError());
             return;
         } else {
              printf("accept() is OK...\n");
         }
         // Print the address of connected client
-        printf("Connected to Client Address: ");
-        IpxAddressToA(peerAddressStr, (unsigned char *)peerAddress.sa_netnum, (unsigned char *)peerAddress.sa_nodenum);
-        printf("%s\n", peerAddressStr);
+        SockaddrIpxToA(peerAddressStr, clientIpxAddress);
+        printf("Connected to Client Address: %s\n", peerAddressStr);
 
         while (1) {
             // Receive data on newly created socket
-            ret = /*sendreceive.*/ReceiveData(newsock, chBuffer);
-            if (0 < ret) {
+            bytesExchanged = /*sendreceive.*/ReceiveData(clientSocket, byteBuffer);
+            if (0 < bytesExchanged) {
                 // Print the contents of received data
-                chBuffer[ret] = '\0';
-                printf("%d bytes of data received: %s\n", ret, chBuffer);
+                byteBuffer[bytesExchanged] = '\0';
+                printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
                 // Send data on newly created socket
                 printf("Sending data...\n");
-                ret = /*sendreceive.*/SendData(newsock, chBuffer);
+                bytesExchanged = /*sendreceive.*/SendData(clientSocket, byteBuffer);
             }
-            if (ret == 0) {
+            if (bytesExchanged == 0) {
                 break;
-            } else if (ret == -1) {
+            } else if (bytesExchanged == -1) {
                 return;
             }
-            printf("%d bytes of data sent\n", ret);
+            printf("%d bytes of data sent\n", bytesExchanged);
         }
-        /*WinSock2.*/closesocket(newsock);
+        /*WinSock2.*/closesocket(clientSocket);
     }
 }
 
