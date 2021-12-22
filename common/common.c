@@ -74,10 +74,8 @@ int BindSocket(
     FillIpxAddress(ipxAddress, address, endpoint);
 
     if (SOCKET_ERROR == /*WinSock2.*/bind(*socket, (SOCKADDR *) ipxAddress, sizeof(SOCKADDR_IPX))) {
-        printf("bind() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
-    printf("bind() is OK...\n");
 
     // Print the address we are bound to. If a particular interface is not
     // mentioned in the BindSocket() call, this may print the address as

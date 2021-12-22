@@ -26,6 +26,9 @@ void mainLoop(SOCKET *serverSocket) {
     // Bind to a local address and endpoint
     if(0 != BindSocket(serverSocket, &serverIpxAddress, serverAddressStr, serverEndpointStr)) {
         printf("BindSocket() failed!\n");
+        if (WSAEADDRINUSE == WSAGetLastError()) {
+            printf("Address already in use!\n");
+        }
         return;
     }
     printf("BindSocket() is OK!\n");
