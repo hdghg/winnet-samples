@@ -2,6 +2,7 @@
 
 #include <winsock2.h>
 #include <wsipx.h>
+#include <windows.h>
 
 #include "common.h"
 #include "conv.h"
@@ -53,6 +54,7 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
 
     for (i=0; i < 5 ;i++) {
         ret = /*sendreceive.*/SendData(*socket, outputBuffer);
+        /*winbase.*/Sleep(500);
         if (ret < 1) {
             return 0;
         }
@@ -67,6 +69,7 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
         outputBuffer[ret] = '\0';
         printf("%d bytes of data received: %s\n", ret, outputBuffer);
     }
+    /*winbase.*/Sleep(5000);
     return 0;
 }
 
@@ -75,4 +78,5 @@ void ClientMainLoop(char *serverAddress) {
     printf("Client main loop\n");
 
     mainLoop(&clientSocket, serverAddress);
+    /*WinSock2.*/closesocket(clientSocket);
 }

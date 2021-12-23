@@ -7,23 +7,28 @@
 #include "conv.h"
 #include "sendreceive.h"
 
+void setNonBlocking(SOCKET *socket) {
+    u_long nonBlockingMode = 1;
+    ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
+}
+
 void mainLoop(SOCKET *serverSocket) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
     SOCKADDR_IPX serverIpxAddress;
     SOCKADDR_IPX clientIpxAddress;
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
-    char peerAddressStr[22];
+    char clientAddressStr[22];
     char *serverAddressStr = NULL;
     char *serverEndpointStr = "7171";
-    SOCKET clientSocket;
+    SOCKET clientSocket = INVALID_SOCKET;
 
     if(0 != CreateSocket(serverSocket, SOCK_STREAM, NSPROTO_SPX)){
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return;
     }
     printf("CreateSocket() is OK...\n");
-    // Bind to a local address and endpoint
+    //setNonBlocking(serverSocket);
     if(0 != BindSocket(serverSocket, &serverIpxAddress, serverAddressStr, serverEndpointStr)) {
         printf("BindSocket() failed!\n");
         if (WSAEADDRINUSE == WSAGetLastError()) {
@@ -35,22 +40,20 @@ void mainLoop(SOCKET *serverSocket) {
 
     if (SOCKET_ERROR == /*WinSock2.*/listen(*serverSocket, SOMAXCONN)) {
         printf("listen() failed with error code %ld\n", WSAGetLastError());
-    } else {
-        printf("listen() looks fine!\n");
-        printf("Waiting for a Connection...\n");
+        return;
     }
+    printf("listen() looks fine! Waiting for a Connection...\n");
 
     while (1) {
         clientSocket = /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
         if (clientSocket == INVALID_SOCKET) {
             printf("accept() failed: %d\n", WSAGetLastError());
             return;
-        } else {
-             printf("accept() is OK...\n");
         }
+        printf("accept() is OK...\n");
         // Print the address of connected client
-        SockaddrIpxToA(peerAddressStr, clientIpxAddress);
-        printf("Connected to Client Address: %s\n", peerAddressStr);
+        SockaddrIpxToA(clientAddressStr, clientIpxAddress);
+        printf("Connected to Client Address: %s\n", clientAddressStr);
 
         while (1) {
             // Receive data on newly created socket
@@ -70,6 +73,7 @@ void mainLoop(SOCKET *serverSocket) {
             }
             printf("%d bytes of data sent\n", bytesExchanged);
         }
+        printf("Client disconnected: %s\n", clientAddressStr);
         /*WinSock2.*/closesocket(clientSocket);
     }
 }
