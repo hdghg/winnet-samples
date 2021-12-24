@@ -8,6 +8,39 @@
 #include "conv.h"
 #include "sendreceive.h"
 
+int setNonBlocking(SOCKET *socket) {
+    u_long nonBlockingMode = 1;
+    return ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
+}
+
+int waitWriteReadiness(SOCKET *socket) {
+    int res;
+    struct timeval waitTime = {0, 100000};
+    struct fd_set write_s;
+    struct fd_set except_s;
+    while (TRUE) {
+        FD_ZERO(&write_s);
+        FD_ZERO(&except_s);
+        FD_SET(*socket, &write_s);
+        FD_SET(*socket, &except_s);
+        res = select(0, NULL, &write_s, &except_s, &waitTime);
+        if (SOCKET_ERROR == res) {
+            printf("\n!!!Failed to await non-blocking socket readiness %d\n", WSAGetLastError());
+            return -1;
+        }
+        if (FD_ISSET(*socket, &except_s)) {
+            printf("\nConnection attempt failed\n");
+            return -2;
+        }
+        if (FD_ISSET(*socket, &write_s)) {
+            printf("\nNon-blocking connection successful!\n");
+            return 0;
+        }
+        printf(".");
+    }
+}
+
+
 int mainLoop(SOCKET *socket, char *serverAddress) {
     SOCKADDR_IPX ipx;
     SOCKADDR_IPX ipxServer;
@@ -16,13 +49,17 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
     DWORD i;
     char *localAddress = NULL;
     char *serverEndpoint = "7171";
-    //char serverAddress[22];
 
     if(0 != CreateSocket(socket, SOCK_STREAM, NSPROTO_SPX)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
     printf("CreateSocket() is OK...\n");
+    if (0 != setNonBlocking(socket)) {
+        printf("Couldn't switch socket to non-blocking mode...\n");
+        return -1;
+    }
+    printf("Socket switched to non-blocking mode...\n");
 
     // Bind to a local address and endpoint
     if(0 != BindSocket(socket, &ipx, localAddress, NULL)) {
@@ -42,10 +79,15 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
 
     // Connect to the server
     ret = /*WinSock2.*/connect(*socket, (SOCKADDR *) &ipxServer, sizeof(ipxServer));
-    if (SOCKET_ERROR == ret) {
-        printf("connect() failed with error code %ld\n", WSAGetLastError());
+    if (SOCKET_ERROR == ret && WSAEWOULDBLOCK != WSAGetLastError()) {
+        printf("Failed to issue a connect request %d\n", WSAGetLastError());
         return -1;
     }
+
+    if (0 != waitWriteReadiness(socket)) {
+        return -1;
+    }
+
     printf("Connected to Server Address: %s\n", serverAddress);
 
     // Send data to the specified server
