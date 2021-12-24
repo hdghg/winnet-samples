@@ -13,7 +13,7 @@ int setNonBlocking(SOCKET *socket) {
     return ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
 }
 
-int waitWriteReadiness(SOCKET *socket) {
+int waitWriteReadiness(SOCKET *socket, BOOL verbose) {
     int res;
     struct timeval waitTime = {0, 100000};
     struct fd_set write_s;
@@ -25,30 +25,37 @@ int waitWriteReadiness(SOCKET *socket) {
         FD_SET(*socket, &except_s);
         res = select(0, NULL, &write_s, &except_s, &waitTime);
         if (SOCKET_ERROR == res) {
-            printf("\n!!!Failed to await non-blocking socket readiness %d\n", WSAGetLastError());
+            if (verbose) printf("\n!!!Failed to await non-blocking socket readiness %d\n", WSAGetLastError());
             return -1;
         }
         if (FD_ISSET(*socket, &except_s)) {
-            printf("\nConnection attempt failed\n");
+            if (verbose) printf("\nConnection attempt failed\n");
             return -2;
         }
         if (FD_ISSET(*socket, &write_s)) {
-            printf("\nNon-blocking connection successful!\n");
+            if (verbose) printf("\nNon-blocking connection successful!\n");
             return 0;
         }
-        printf(".");
+        if (verbose) printf(".");
     }
 }
 
 
-int mainLoop(SOCKET *socket, char *serverAddress) {
-    SOCKADDR_IPX ipx;
-    SOCKADDR_IPX ipxServer;
-    char outputBuffer[MAX_DATA_LEN];
-    int ret;
-    DWORD i;
-    char *localAddress = NULL;
-    char *serverEndpoint = "7171";
+int mainLoop(SOCKET *socket, char *serverAddressStr) {
+    int ipxAddressSize = sizeof(SOCKADDR_IPX);
+    SOCKADDR_IPX localIpxAddress;
+    SOCKADDR_IPX serverIpxAddress;
+    char *localAddressStr = NULL;
+    char *serverEndpointStr = "7171";
+    int bytesExchanged;
+    char byteBuffer[MAX_DATA_LEN];
+    int operationResult;
+    int counter;
+
+    if (serverAddressStr == NULL) {
+        printf("Server Address must be specified.... Exiting\n");
+        return -1;
+    }
 
     if(0 != CreateSocket(socket, SOCK_STREAM, NSPROTO_SPX)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
@@ -62,54 +69,53 @@ int mainLoop(SOCKET *socket, char *serverAddress) {
     printf("Socket switched to non-blocking mode...\n");
 
     // Bind to a local address and endpoint
-    if(0 != BindSocket(socket, &ipx, localAddress, NULL)) {
+    if(0 != BindSocket(socket, &localIpxAddress, localAddressStr, NULL)) {
         printf("BindSocket() failed!\n");
         return -1;
     }
     printf("BindSocket() is OK!\n");
 
     // Fill the sa_ipx_server address with server address and endpoint
-    if (serverAddress == NULL) {
-        printf("Server Address must be specified.... Exiting\n");
-        return -1;
-    }
-    FillIpxAddress(&ipxServer, serverAddress, serverEndpoint);
+    FillIpxAddress(&serverIpxAddress, serverAddressStr, serverEndpointStr);
 
-    printf("Connecting to Server: %s\n", serverAddress);
+    printf("Connecting to Server: %s\n", serverAddressStr);
 
     // Connect to the server
-    ret = /*WinSock2.*/connect(*socket, (SOCKADDR *) &ipxServer, sizeof(ipxServer));
-    if (SOCKET_ERROR == ret && WSAEWOULDBLOCK != WSAGetLastError()) {
+    operationResult = /*WinSock2.*/connect(*socket, (SOCKADDR *) &serverIpxAddress, ipxAddressSize);
+    if (SOCKET_ERROR == operationResult && WSAEWOULDBLOCK != WSAGetLastError()) {
         printf("Failed to issue a connect request %d\n", WSAGetLastError());
         return -1;
     }
 
-    if (0 != waitWriteReadiness(socket)) {
+    if (0 != waitWriteReadiness(socket, TRUE)) {
         return -1;
     }
 
-    printf("Connected to Server Address: %s\n", serverAddress);
+    printf("Connected successfully\n");
 
     // Send data to the specified server
-    /*string.*/memset(outputBuffer, '$', 128);
-    outputBuffer[128] = 0;
+    /*string.*/memset(byteBuffer, '$', 128);
+    byteBuffer[128] = '\0';
 
-    for (i=0; i < 5 ;i++) {
-        ret = /*sendreceive.*/SendData(*socket, outputBuffer);
+    for (counter = 0; counter < 5; counter++) {
+        if (0 != waitWriteReadiness(socket, FALSE)) {
+            return -1;
+        }
+        bytesExchanged = /*sendreceive.*/SendData(*socket, byteBuffer);
         /*winbase.*/Sleep(500);
-        if (ret < 1) {
+        if (bytesExchanged < 1) {
             return 0;
         }
-        printf("%d bytes of data sent\n", ret);
+        printf("%d bytes of data sent\n", bytesExchanged);
 
         // Receive data from the server
-        ret = /*sendreceive.*/ReceiveData(*socket, outputBuffer);
-        if (ret < 1) {
+        bytesExchanged = /*sendreceive.*/ReceiveData(*socket, byteBuffer);
+        if (bytesExchanged < 1) {
             return 0;
         }
         // Print the contents of received data
-        outputBuffer[ret] = '\0';
-        printf("%d bytes of data received: %s\n", ret, outputBuffer);
+        byteBuffer[bytesExchanged] = '\0';
+        printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
     }
     /*winbase.*/Sleep(5000);
     return 0;

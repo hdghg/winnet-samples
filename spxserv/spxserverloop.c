@@ -16,11 +16,11 @@ void mainLoop(SOCKET *serverSocket) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
     SOCKADDR_IPX serverIpxAddress;
     SOCKADDR_IPX clientIpxAddress;
+    char *serverAddressStr = NULL;
+    char *serverEndpointStr = "7171";
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
     char clientAddressStr[22];
-    char *serverAddressStr = NULL;
-    char *serverEndpointStr = "7171";
     SOCKET clientSocket = INVALID_SOCKET;
 
     if(0 != CreateSocket(serverSocket, SOCK_STREAM, NSPROTO_SPX)){
