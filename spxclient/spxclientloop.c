@@ -7,39 +7,12 @@
 #include "common.h"
 #include "conv.h"
 #include "sendreceive.h"
+#include "socket/nbsocket.h"
 
 int setNonBlocking(SOCKET *socket) {
     u_long nonBlockingMode = 1;
     return ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
 }
-
-int waitWriteReadiness(SOCKET *socket, BOOL verbose) {
-    int res;
-    struct timeval waitTime = {0, 100000};
-    struct fd_set write_s;
-    struct fd_set except_s;
-    while (TRUE) {
-        FD_ZERO(&write_s);
-        FD_ZERO(&except_s);
-        FD_SET(*socket, &write_s);
-        FD_SET(*socket, &except_s);
-        res = select(0, NULL, &write_s, &except_s, &waitTime);
-        if (SOCKET_ERROR == res) {
-            if (verbose) printf("\n!!!Failed to await non-blocking socket readiness %d\n", WSAGetLastError());
-            return -1;
-        }
-        if (FD_ISSET(*socket, &except_s)) {
-            if (verbose) printf("\nConnection attempt failed\n");
-            return -2;
-        }
-        if (FD_ISSET(*socket, &write_s)) {
-            if (verbose) printf("\nNon-blocking connection successful!\n");
-            return 0;
-        }
-        if (verbose) printf(".");
-    }
-}
-
 
 int mainLoop(SOCKET *socket, char *serverAddressStr) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
@@ -87,7 +60,7 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
         return -1;
     }
 
-    if (0 != waitWriteReadiness(socket, TRUE)) {
+    if (0 != AwaitReadiness(NULL, socket, TRUE)) {
         return -1;
     }
 
