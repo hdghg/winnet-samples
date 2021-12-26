@@ -62,20 +62,34 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
     printf("Connected successfully\n");
 
     // Send data to the specified server
-    /*string.*/memset(byteBuffer, '$', 128);
-    byteBuffer[128] = '\0';
 
-    for (counter = 0; counter < 5; counter++) {
+    while (TRUE) {
+        /*string.*/memset(byteBuffer, ' ', 128);
+        byteBuffer[128] = '\0';
+        fgets(byteBuffer, 129, stdin);
+        if ('\n' != byteBuffer[strlen(byteBuffer) -1]) {
+            while ('\n' != getchar()) {
+            }
+        }
+        for (counter = 0; counter < 128; counter++) {
+            if ('\0' == byteBuffer[counter] || '\n' == byteBuffer[counter]) {
+                byteBuffer[counter] = ' ';
+            }
+        }
+
+
         if (0 != AwaitReadiness(NULL, socket, FALSE)) {
             return -1;
         }
         bytesExchanged = /*sendreceive.*/SendData(*socket, byteBuffer);
-        /*winbase.*/Sleep(500);
         if (bytesExchanged < 1) {
             return 0;
         }
         printf("%d bytes of data sent\n", bytesExchanged);
 
+        if (0 != AwaitReadiness(socket, NULL, FALSE)) {
+            return -1;
+        }
         // Receive data from the server
         bytesExchanged = /*sendreceive.*/ReceiveData(*socket, byteBuffer);
         if (bytesExchanged < 1) {
@@ -85,7 +99,6 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
         byteBuffer[bytesExchanged] = '\0';
         printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
     }
-    /*winbase.*/Sleep(5000);
     return 0;
 }
 
