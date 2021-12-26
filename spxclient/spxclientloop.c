@@ -9,11 +9,6 @@
 #include "sendreceive.h"
 #include "socket/nbsocket.h"
 
-int setNonBlocking(SOCKET *socket) {
-    u_long nonBlockingMode = 1;
-    return ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
-}
-
 int mainLoop(SOCKET *socket, char *serverAddressStr) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
     SOCKADDR_IPX localIpxAddress;
@@ -35,7 +30,7 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
         return -1;
     }
     printf("CreateSocket() is OK...\n");
-    if (0 != setNonBlocking(socket)) {
+    if (0 != SwitchToNonBlocking(socket)) {
         printf("Couldn't switch socket to non-blocking mode...\n");
         return -1;
     }
@@ -71,7 +66,7 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
     byteBuffer[128] = '\0';
 
     for (counter = 0; counter < 5; counter++) {
-        if (0 != waitWriteReadiness(socket, FALSE)) {
+        if (0 != AwaitReadiness(NULL, socket, FALSE)) {
             return -1;
         }
         bytesExchanged = /*sendreceive.*/SendData(*socket, byteBuffer);

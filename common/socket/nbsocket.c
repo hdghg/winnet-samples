@@ -40,5 +40,9 @@ int AwaitReadiness(__in SOCKET *readSocket, __in SOCKET *writeSocket, __in BOOL 
         }
         if (verbose) printf(".");
     }
+}
 
+int SwitchToNonBlocking(SOCKET *socket) {
+    u_long nonBlockingMode = 1;
+    return ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
 }
