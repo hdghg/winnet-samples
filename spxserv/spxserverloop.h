@@ -2,6 +2,6 @@
 #define SPXSERVERLOOP_H
 #include "stdafx.h"
 
-void ServerMainLoop();
+int ServerMainLoop();
 
 #endif

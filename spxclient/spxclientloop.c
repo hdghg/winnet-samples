@@ -5,16 +5,15 @@
 #include <windows.h>
 #include <conio.h>
 
-#include "common.h"
-#include "conv.h"
-#include "sendreceive.h"
+#include "socket/common.h"
+#include "socket/sendreceive.h"
 #include "socket/nbsocket.h"
-
+#include "conv.h"
 
 char * nbReadLine(char *dest) {
     int len;
     char c;
-    if (_kbhit()) {
+    while (_kbhit()) {
         len = strlen(dest);
         c = _getch();
         if (('\r' == c) || ('\n' == c)) {
@@ -30,66 +29,17 @@ char * nbReadLine(char *dest) {
     return NULL;
 }
 
-int mainLoop(SOCKET *socket, char *serverAddressStr) {
-    int ipxAddressSize = sizeof(SOCKADDR_IPX);
-    SOCKADDR_IPX localIpxAddress;
-    SOCKADDR_IPX serverIpxAddress;
-    char *localAddressStr = NULL;
-    char *serverEndpointStr = "7171";
+int mainLoop(SOCKET *socket) {
     int bytesExchanged;
     char receiveBuffer[MAX_DATA_LEN];
     char sendBuffer[MAX_DATA_LEN];
     int operationResult;
-    int counter;
 
-    if (serverAddressStr == NULL) {
-        printf("Server Address must be specified.... Exiting\n");
-        return -1;
-    }
-
-    if(0 != CreateSocket(socket, SOCK_STREAM, NSPROTO_SPX)) {
-        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
-        return -1;
-    }
-    printf("CreateSocket() is OK...\n");
-    if (0 != SwitchToNonBlocking(socket)) {
-        printf("Couldn't switch socket to non-blocking mode...\n");
-        return -1;
-    }
-    printf("Socket switched to non-blocking mode...\n");
-
-    // Bind to a local address and endpoint
-    if(0 != BindSocket(socket, &localIpxAddress, localAddressStr, NULL)) {
-        printf("BindSocket() failed!\n");
-        return -1;
-    }
-    printf("BindSocket() is OK!\n");
-
-    // Fill the sa_ipx_server address with server address and endpoint
-    FillIpxAddress(&serverIpxAddress, serverAddressStr, serverEndpointStr);
-
-    printf("Connecting to Server: %s\n", serverAddressStr);
-
-    // Connect to the server
-    operationResult = /*WinSock2.*/connect(*socket, (SOCKADDR *) &serverIpxAddress, ipxAddressSize);
-    if (SOCKET_ERROR == operationResult && WSAEWOULDBLOCK != WSAGetLastError()) {
-        printf("Failed to issue a connect request %d\n", WSAGetLastError());
-        return -1;
-    }
-
-    if (0 != AwaitReadiness(NULL, socket, TRUE)) {
-        return -1;
-    }
-
-    printf("Connected successfully\n");
-
-    memset(&sendBuffer, '\0', 256);
+    memset(&sendBuffer, '\0', MAX_DATA_LEN);
     while (TRUE) {
         if (nbReadLine(sendBuffer)) {
-            /*string.*///memset(byteBuffer, ' ', 128);
             memset(&sendBuffer[strlen(sendBuffer)], ' ', 256);
             sendBuffer[128] = '\0';
-
             if (0 != AwaitReadiness(NULL, socket, TRUE)) {
                 return -1;
             }
@@ -98,33 +48,62 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
                 return 0;
             }
             printf("%d bytes of data sent\n", bytesExchanged);
-            memset(&sendBuffer, '\0', 256);
+            memset(&sendBuffer, '\0', MAX_DATA_LEN);
         }
         operationResult = NbCheckReadiness(socket, NULL, FALSE);
         if (0 == operationResult) {
-            // Receive data from the server
             bytesExchanged = /*sendreceive.*/ReceiveData(*socket, receiveBuffer);
             if (bytesExchanged < 1) {
                 return 0;
             }
-            // Print the contents of received data
             receiveBuffer[bytesExchanged] = '\0';
             printf("%d bytes of data received: %s\n", bytesExchanged, receiveBuffer);
-        } else {
-            if (-3 == operationResult) {
-                //pass
-            } else {
-                return -1;
-            }
+        } else if (-3 != operationResult) {
+            return -1;
         }
     }
     return 0;
 }
 
-void ClientMainLoop(char *serverAddress) {
+int ClientMainLoop(char *serverAddressStr) {
+    int ipxAddressSize = sizeof(SOCKADDR_IPX);
     SOCKET clientSocket = INVALID_SOCKET;
-    printf("Client main loop\n");
+    SOCKADDR_IPX localIpxAddress;
+    SOCKADDR_IPX serverIpxAddress;
+    char *serverEndpointStr = "7171";
+    int connectResult;
 
-    mainLoop(&clientSocket, serverAddress);
-    /*WinSock2.*/closesocket(clientSocket);
+    if (serverAddressStr == NULL) {
+        printf("Server Address must be specified.... Exiting\n");
+        return;
+    }
+    if(0 != CreateSocket(&clientSocket, SOCK_STREAM, NSPROTO_SPX)) {
+        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
+        return;
+    }
+    printf("CreateSocket() is OK...\n");
+    if (0 != SwitchToNonBlocking(&clientSocket)) {
+        printf("Couldn't switch socket to non-blocking mode...\n");
+        return CloseSocket(&clientSocket);
+    }
+    if(0 != BindSocket(&clientSocket, &localIpxAddress, NULL, NULL)) {
+        printf("BindSocket() failed!\n");
+        return CloseSocket(&clientSocket);
+    }
+    printf("BindSocket() is OK!\n");
+    FillIpxAddress(&serverIpxAddress, serverAddressStr, serverEndpointStr);
+    printf("Connecting to Server: %s\n", serverAddressStr);
+    connectResult = /*WinSock2.*/connect(clientSocket, (SOCKADDR *) &serverIpxAddress, ipxAddressSize);
+    if (SOCKET_ERROR == connectResult && WSAEWOULDBLOCK != WSAGetLastError()) {
+        printf("Failed to issue a connect request %d\n", WSAGetLastError());
+        return CloseSocket(&clientSocket);
+    }
+    if (0 != AwaitReadiness(NULL, &clientSocket, TRUE)) {
+        return CloseSocket(&clientSocket);
+    }
+
+    printf("Connected successfully\n");
+
+    mainLoop(&clientSocket);
+    return CloseSocket(&clientSocket);
 }

@@ -3,46 +3,17 @@
 #include <winsock2.h>
 #include <wsipx.h>
 
-#include "common.h"
+#include "socket/common.h"
+#include "socket/sendreceive.h"
 #include "conv.h"
-#include "sendreceive.h"
-
-void setNonBlocking(SOCKET *socket) {
-    u_long nonBlockingMode = 1;
-    ioctlsocket(*socket, FIONBIO, &nonBlockingMode);
-}
 
 void mainLoop(SOCKET *serverSocket) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
-    SOCKADDR_IPX serverIpxAddress;
     SOCKADDR_IPX clientIpxAddress;
-    char *serverAddressStr = NULL;
-    char *serverEndpointStr = "7171";
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
     char clientAddressStr[22];
     SOCKET clientSocket = INVALID_SOCKET;
-
-    if(0 != CreateSocket(serverSocket, SOCK_STREAM, NSPROTO_SPX)){
-        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
-        return;
-    }
-    printf("CreateSocket() is OK...\n");
-    //setNonBlocking(serverSocket);
-    if(0 != BindSocket(serverSocket, &serverIpxAddress, serverAddressStr, serverEndpointStr)) {
-        printf("BindSocket() failed!\n");
-        if (WSAEADDRINUSE == WSAGetLastError()) {
-            printf("Address already in use!\n");
-        }
-        return;
-    }
-    printf("BindSocket() is OK!\n");
-
-    if (SOCKET_ERROR == /*WinSock2.*/listen(*serverSocket, SOMAXCONN)) {
-        printf("listen() failed with error code %ld\n", WSAGetLastError());
-        return;
-    }
-    printf("listen() looks fine! Waiting for a Connection...\n");
 
     while (1) {
         clientSocket = /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
@@ -69,24 +40,42 @@ void mainLoop(SOCKET *serverSocket) {
             if (bytesExchanged == 0) {
                 break;
             } else if (bytesExchanged == -1) {
+                CloseSocket(&clientSocket);
                 return;
             }
             printf("%d bytes of data sent\n", bytesExchanged);
         }
         printf("Client disconnected: %s\n", clientAddressStr);
-        /*WinSock2.*/closesocket(clientSocket);
+        CloseSocket(&clientSocket);
     }
 }
 
-void ServerMainLoop() {
+int ServerMainLoop() {
     SOCKET serverSocket = INVALID_SOCKET;
+    SOCKADDR_IPX serverIpxAddress;
+    char *serverEndpointStr = "7171";
+
+    if(0 != CreateSocket(&serverSocket, SOCK_STREAM, NSPROTO_SPX)){
+        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
+        return -1;
+    }
+    printf("CreateSocket() is OK...\n");
+    //setNonBlocking(serverSocket);
+    if(0 != BindSocket(&serverSocket, &serverIpxAddress, NULL, serverEndpointStr)) {
+        printf("BindSocket() failed!\n");
+        if (WSAEADDRINUSE == WSAGetLastError()) {
+            printf("Address already in use!\n");
+        }
+        return CloseSocket(&serverSocket);
+    }
+    printf("BindSocket() is OK!\n");
+
+    if (SOCKET_ERROR == /*WinSock2.*/listen(serverSocket, SOMAXCONN)) {
+        printf("listen() failed with error code %ld\n", WSAGetLastError());
+        return CloseSocket(&serverSocket);
+    }
+    printf("listen() looks fine! Waiting for a Connection...\n");
 
     mainLoop(&serverSocket);
-
-    // Close the bound socket
-    if(0 == /*WinSock2.*/closesocket(serverSocket)) {
-        printf("closesocket(sock) is OK!\n");
-    } else {
-        printf("closesocket(sock) failed with error code %ld\n", WSAGetLastError());
-    }
+    return CloseSocket(&serverSocket);
 }

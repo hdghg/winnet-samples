@@ -4,7 +4,7 @@
 #include <wsipx.h>
 #include <wsnwlink.h>
 
-#include "common.h"
+#include "socket/common.h"
 #include "spxserverloop.h"
 
 #pragma comment(lib, "WS2_32")

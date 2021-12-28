@@ -63,7 +63,7 @@ int NbCheckReadiness(__in SOCKET *readSocket, __in SOCKET *writeSocket, __in BOO
         FD_SET(*writeSocket, &writeSocketSet);
         FD_SET(*writeSocket, &exceptSocketSet);
     }
-    res = select(0, &readSocketSet, &writeSocketSet, &exceptSocketSet, NULL);
+    res = select(0, &readSocketSet, &writeSocketSet, &exceptSocketSet, &waitTime);
     if (SOCKET_ERROR == res) {
         return SOCKET_ERROR;
     }

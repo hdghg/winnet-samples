@@ -4,7 +4,7 @@
 #include <wsipx.h>
 #include <wsnwlink.h>
 
-#include "conv.h"
+#include "../conv.h"
 
 // Function: CreateSocket
 // Description:
@@ -121,6 +121,15 @@ int EnumerateAdapters(SOCKET *sock) {
         IpxAddressToA(boundAddressStr, (unsigned char *) ipx_data.netnum, (unsigned char *) ipx_data.nodenum);
         printf("%d: %s\n", i, boundAddressStr);
         //PrintIpxAddress((char *) ipx_data.netnum, (char *) ipx_data.nodenum);
+    }
+    return 0;
+}
+
+int CloseSocket(SOCKET *socket) {
+    if(0 == /*WinSock2.*/closesocket(*socket)) {
+        printf("closesocket(sock) is OK!\n");
+    } else {
+        printf("closesocket(sock) failed with error code %ld\n", WSAGetLastError());
     }
     return 0;
 }
