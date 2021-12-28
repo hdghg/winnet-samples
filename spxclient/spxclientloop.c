@@ -3,11 +3,32 @@
 #include <winsock2.h>
 #include <wsipx.h>
 #include <windows.h>
+#include <conio.h>
 
 #include "common.h"
 #include "conv.h"
 #include "sendreceive.h"
 #include "socket/nbsocket.h"
+
+
+char * nbReadLine(char *dest) {
+    int len;
+    char c;
+    if (_kbhit()) {
+        len = strlen(dest);
+        c = _getch();
+        if (('\r' == c) || ('\n' == c)) {
+            printf("\n");
+            return dest;
+        }
+        if (127 < len) {
+        } else {
+            dest[len] = c;
+            printf("%c", c);
+        }
+    }
+    return NULL;
+}
 
 int mainLoop(SOCKET *socket, char *serverAddressStr) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
@@ -16,7 +37,8 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
     char *localAddressStr = NULL;
     char *serverEndpointStr = "7171";
     int bytesExchanged;
-    char byteBuffer[MAX_DATA_LEN];
+    char receiveBuffer[MAX_DATA_LEN];
+    char sendBuffer[MAX_DATA_LEN];
     int operationResult;
     int counter;
 
@@ -61,43 +83,40 @@ int mainLoop(SOCKET *socket, char *serverAddressStr) {
 
     printf("Connected successfully\n");
 
-    // Send data to the specified server
-
+    memset(&sendBuffer, '\0', 256);
     while (TRUE) {
-        /*string.*/memset(byteBuffer, ' ', 128);
-        byteBuffer[128] = '\0';
-        fgets(byteBuffer, 129, stdin);
-        if ('\n' != byteBuffer[strlen(byteBuffer) -1]) {
-            while ('\n' != getchar()) {
+        if (nbReadLine(sendBuffer)) {
+            /*string.*///memset(byteBuffer, ' ', 128);
+            memset(&sendBuffer[strlen(sendBuffer)], ' ', 256);
+            sendBuffer[128] = '\0';
+
+            if (0 != AwaitReadiness(NULL, socket, TRUE)) {
+                return -1;
+            }
+            bytesExchanged = /*sendreceive.*/SendData(*socket, sendBuffer);
+            if (bytesExchanged < 1) {
+                return 0;
+            }
+            printf("%d bytes of data sent\n", bytesExchanged);
+            memset(&sendBuffer, '\0', 256);
+        }
+        operationResult = NbCheckReadiness(socket, NULL, FALSE);
+        if (0 == operationResult) {
+            // Receive data from the server
+            bytesExchanged = /*sendreceive.*/ReceiveData(*socket, receiveBuffer);
+            if (bytesExchanged < 1) {
+                return 0;
+            }
+            // Print the contents of received data
+            receiveBuffer[bytesExchanged] = '\0';
+            printf("%d bytes of data received: %s\n", bytesExchanged, receiveBuffer);
+        } else {
+            if (-3 == operationResult) {
+                //pass
+            } else {
+                return -1;
             }
         }
-        for (counter = 0; counter < 128; counter++) {
-            if ('\0' == byteBuffer[counter] || '\n' == byteBuffer[counter]) {
-                byteBuffer[counter] = ' ';
-            }
-        }
-
-
-        if (0 != AwaitReadiness(NULL, socket, FALSE)) {
-            return -1;
-        }
-        bytesExchanged = /*sendreceive.*/SendData(*socket, byteBuffer);
-        if (bytesExchanged < 1) {
-            return 0;
-        }
-        printf("%d bytes of data sent\n", bytesExchanged);
-
-        if (0 != AwaitReadiness(socket, NULL, FALSE)) {
-            return -1;
-        }
-        // Receive data from the server
-        bytesExchanged = /*sendreceive.*/ReceiveData(*socket, byteBuffer);
-        if (bytesExchanged < 1) {
-            return 0;
-        }
-        // Print the contents of received data
-        byteBuffer[bytesExchanged] = '\0';
-        printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
     }
     return 0;
 }
