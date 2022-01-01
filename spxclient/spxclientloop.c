@@ -16,6 +16,9 @@ char * nbReadLine(char *dest) {
     while (_kbhit()) {
         len = strlen(dest);
         c = _getch();
+        if ('\t' == c) {
+            return NULL;
+        }
         if (8 == c && 0 < len) {
             printf("%c %c", c, c);
             dest[len - 1] = '\0';
