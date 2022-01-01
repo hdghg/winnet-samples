@@ -38,12 +38,11 @@ int mainLoop(SOCKET *socket) {
     memset(&sendBuffer, '\0', MAX_DATA_LEN);
     while (TRUE) {
         if (nbReadLine(sendBuffer)) {
-            memset(&sendBuffer[strlen(sendBuffer)], ' ', 256);
-            sendBuffer[128] = '\0';
+            memset(&sendBuffer[strlen(sendBuffer)], '\0', MESSAGE_SIZE);
             if (0 != AwaitReadiness(NULL, socket, TRUE)) {
                 return -1;
             }
-            bytesExchanged = /*sendreceive.*/SendData(*socket, sendBuffer);
+            bytesExchanged = /*sendreceive.*/SendData(*socket, sendBuffer, MESSAGE_SIZE);
             if (bytesExchanged < 1) {
                 return 0;
             }

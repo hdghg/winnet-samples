@@ -5,6 +5,6 @@
 #include <winsock2.h>
 
 int ReceiveData(SOCKET s, char *buffer);
-int SendData(SOCKET s, char *pchBuffer);
+int SendData(SOCKET s, char *pchBuffer, int size);
 
 #endif

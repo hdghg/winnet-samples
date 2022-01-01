@@ -32,9 +32,9 @@ int ReceiveData(SOCKET s, char *buffer) {
     return totalBytes;
 }
 
-int SendData(SOCKET socket, char *pchBuffer) {
+int SendData(SOCKET socket, char *pchBuffer, int size) {
     int sent;
-    sent = /*WinSock2.*/send(socket, pchBuffer, strlen(pchBuffer), 0);
+    sent = /*WinSock2.*/send(socket, pchBuffer, size, 0);
     if (SOCKET_ERROR == sent) {
         printf("send() failed with error code %ld\n", WSAGetLastError());
         return -1;

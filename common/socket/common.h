@@ -5,6 +5,7 @@
 #include <winsock2.h>
 
 #define MAX_DATA_LEN 64000
+#define MESSAGE_SIZE 128
 
 int CreateSocket(__out SOCKET *sock, __in int type, __in int protocol);
 void FillIpxAddress(__out SOCKADDR_IPX *socketAddress, __in LPSTR address, __in LPSTR endpoint);

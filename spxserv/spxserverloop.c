@@ -35,7 +35,7 @@ void mainLoop(SOCKET *serverSocket) {
                 printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
                 // Send data on newly created socket
                 printf("Sending data...\n");
-                bytesExchanged = /*sendreceive.*/SendData(clientSocket, byteBuffer);
+                bytesExchanged = /*sendreceive.*/SendData(clientSocket, byteBuffer, MESSAGE_SIZE);
             }
             if (bytesExchanged == 0) {
                 break;
