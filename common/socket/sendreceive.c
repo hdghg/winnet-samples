@@ -12,8 +12,6 @@ int ReceiveData(SOCKET s, char *buffer) {
         received = /*WinSock2.*/recv(s, &buffer[totalBytes], leftBytes, 0);
         if (SOCKET_ERROR == received) {
             if (WSAEWOULDBLOCK == WSAGetLastError()) {
-                printf("No data in non-blocking socket\n");
-                // TODO: Come up with non-blocking algorhytm
                 break;
             }
             if (WSAECONNRESET == WSAGetLastError()) {

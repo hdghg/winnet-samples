@@ -61,6 +61,9 @@ int mainLoop(SOCKET *socket) {
         if (0 == operationResult) {
             bytesExchanged = /*sendreceive.*/ReceiveData(*socket, receiveBuffer);
             if (bytesExchanged < 1) {
+                if (0 == bytesExchanged) {
+                    printf("Server went offline\n");
+                }
                 return 0;
             }
             receiveBuffer[bytesExchanged] = '\0';
