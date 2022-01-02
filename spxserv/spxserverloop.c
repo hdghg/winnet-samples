@@ -5,6 +5,7 @@
 
 #include "socket/common.h"
 #include "socket/sendreceive.h"
+#include "socket/nbsocket.h"
 #include "conv.h"
 
 void mainLoop(SOCKET *serverSocket) {
@@ -13,40 +14,71 @@ void mainLoop(SOCKET *serverSocket) {
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
     char clientAddressStr[22];
-    SOCKET clientSocket = INVALID_SOCKET;
+    SOCKET clientSockets[16];
+    SOCKET socket;
+    int clientsCount = 16;
+    int counter;
+    int operationResult;
 
-    while (1) {
-        clientSocket = /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
-        if (clientSocket == INVALID_SOCKET) {
-            printf("accept() failed: %d\n", WSAGetLastError());
-            return;
-        }
-        printf("accept() is OK...\n");
-        // Print the address of connected client
-        SockaddrIpxToA(clientAddressStr, clientIpxAddress);
-        printf("Connected to Client Address: %s\n", clientAddressStr);
+    while (0 < clientsCount) {
+        clientsCount--;
+        clientSockets[clientsCount] = INVALID_SOCKET;
+    }
 
-        while (1) {
-            // Receive data on newly created socket
-            bytesExchanged = /*sendreceive.*/ReceiveData(clientSocket, byteBuffer);
-            if (0 < bytesExchanged) {
-                // Print the contents of received data
-                byteBuffer[bytesExchanged] = '\0';
+    while (TRUE) {
+        operationResult = -1;
+        for (counter = 0; counter < clientsCount; counter++) {
+            operationResult = NbCheckReadiness(&clientSockets[counter], NULL, FALSE);
+            if (0 == operationResult) {
+                bytesExchanged = /*sendreceive.*/ReceiveData(clientSockets[counter], byteBuffer);
+                if (bytesExchanged < 1) {
+                    if (0 == bytesExchanged) {
+                        printf("Client went offline\n");
+                    } else {
+                        printf("Connection terminated\n");
+                    }
+                    socket = clientSockets[counter];
+                    clientSockets[counter] = clientSockets[clientsCount - 1];
+                    clientSockets[clientsCount - 1] = socket;
+                    CloseSocket(&socket);
+                    clientsCount--;
+                    operationResult = -1;
+                    break;
+                }
                 printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
-                // Send data on newly created socket
-                printf("Sending data...\n");
-                bytesExchanged = /*sendreceive.*/SendData(clientSocket, byteBuffer, MESSAGE_SIZE);
-            }
-            if (bytesExchanged == 0) {
                 break;
-            } else if (bytesExchanged == -1) {
-                CloseSocket(&clientSocket);
+            } else if (-3 != operationResult) {
                 return;
             }
-            printf("%d bytes of data sent\n", bytesExchanged);
         }
-        printf("Client disconnected: %s\n", clientAddressStr);
-        CloseSocket(&clientSocket);
+        if (0 == operationResult) {
+            for (counter = 0; counter < clientsCount; counter++) {
+                bytesExchanged = /*sendreceive.*/SendData(clientSockets[counter], byteBuffer, MESSAGE_SIZE);
+                if (1 > bytesExchanged) {
+                    socket = clientSockets[counter];
+                    clientSockets[counter] = clientSockets[clientsCount - 1];
+                    clientSockets[clientsCount - 1] = socket;
+                    CloseSocket(&socket);
+                    clientsCount--;
+                }
+            }
+        }
+
+        if (16 <= clientsCount) {
+            continue;
+        }
+        clientSockets[clientsCount] =
+            /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
+        if (INVALID_SOCKET == clientSockets[clientsCount]) {
+            if (WSAEWOULDBLOCK != WSAGetLastError()) {
+                printf("accept() failed: %d\n", WSAGetLastError());
+                return;
+            }
+        } else {
+            clientsCount++;
+            SockaddrIpxToA(clientAddressStr, clientIpxAddress);
+            printf("Client %s connected\n", clientAddressStr);
+        }
     }
 }
 
@@ -60,7 +92,10 @@ int ServerMainLoop() {
         return -1;
     }
     printf("CreateSocket() is OK...\n");
-    //setNonBlocking(serverSocket);
+    if (0 != SwitchToNonBlocking(&serverSocket)) {
+        printf("Couldn't switch socket to non-blocking mode...\n");
+        return CloseSocket(&serverSocket);
+    }
     if(0 != BindSocket(&serverSocket, &serverIpxAddress, NULL, serverEndpointStr)) {
         printf("BindSocket() failed!\n");
         if (WSAEADDRINUSE == WSAGetLastError()) {
