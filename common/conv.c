@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <windows.h>
 
 // Function: BtoH
 // Description: BtoH () returns the equivalent binary value for an individual
