@@ -14,8 +14,6 @@ int printAdapters() {
     SOCKADDR_IPX ipxSockaddr;
     printf("Trying to resolve available adapters...\n");
     if(0 != /*common.*/CreateSocket(&s, SOCK_DGRAM, NSPROTO_IPX)){
-        printf("Could not resolve adapters. ");
-        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return;
     }
     if(0 != /*common.*/BindSocket(&s, &ipxSockaddr, NULL, NULL)) {

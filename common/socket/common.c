@@ -6,20 +6,17 @@
 
 #include "../conv.h"
 
-// Function: CreateSocket
-// Description:
-//    creates the main socket (i.e. the listening socket for the
-//    server and the connecting socket for the client).
-//    SPX sockets use either SOCK_STREAM or SOCK_SEQPACKET but must
-//    be of the protocol NSPROTO_SPX or NSPROTO_SPXII.
-//    IPX sockets must use SOCK_DGRAM and NSPROTO_IPX.
+// Create a socket.\n
 int CreateSocket(__out SOCKET *sock, __in int type, __in int protocol) {
     *sock = /*WinSock2.*/socket(AF_IPX, type, protocol);
     if (INVALID_SOCKET == *sock) {
-        printf("socket() failed with error code %ld\n", WSAGetLastError());
+        if (WSAEAFNOSUPPORT == WSAGetLastError()) {
+            printf("Protocol is not supported by the system\n", WSAGetLastError());
+        } else {
+            printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
+        }
         return -1;
     }
-    printf("socket() looks fine!\n");
     return 0;
 }
 

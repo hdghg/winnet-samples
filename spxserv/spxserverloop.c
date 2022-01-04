@@ -88,7 +88,6 @@ int ServerMainLoop() {
     char *serverEndpointStr = "7171";
 
     if(0 != CreateSocket(&serverSocket, SOCK_STREAM, NSPROTO_SPX)){
-        printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
     printf("CreateSocket() is OK...\n");
