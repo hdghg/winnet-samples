@@ -3,15 +3,16 @@
 #include "stdafx.h"
 
 #include <winsock2.h>
+#include <wsipx.h>
 
 #define MAX_DATA_LEN 64000
 #define MESSAGE_SIZE 128
 
-int CreateSocket(__out SOCKET *sock, __in int type, __in int protocol);
-void FillIpxAddress(__out SOCKADDR_IPX *socketAddress, __in LPSTR address, __in LPSTR endpoint);
-void SockaddrIpxToA(char *dest, SOCKADDR_IPX ipxAddress);
-int BindSocket(SOCKET *sock, SOCKADDR_IPX *psa, LPSTR address, LPSTR endpoint);
-int EnumerateAdapters(SOCKET *sock);
-int CloseSocket(SOCKET *socket);
+int CreateSocket(OUT SOCKET *sock, IN int family, IN int type, IN int protocol);
+void FillIpxAddress(OUT SOCKADDR_IPX *socketAddress, IN LPSTR address, IN LPSTR endpoint);
+void SockaddrIpxToA(OUT char *dest, IN SOCKADDR_IPX ipxAddress);
+int BindSocket(IN SOCKET *sock, OUT SOCKADDR_IPX *psa, IN LPSTR address, IN LPSTR endpoint);
+int EnumerateAdapters(IN SOCKET *sock);
+int CloseSocket(IN SOCKET *socket);
 
 #endif

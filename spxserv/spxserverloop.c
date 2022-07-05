@@ -87,7 +87,7 @@ int ServerMainLoop() {
     SOCKADDR_IPX serverIpxAddress;
     char *serverEndpointStr = "7171";
 
-    if(0 != CreateSocket(&serverSocket, SOCK_STREAM, NSPROTO_SPX)){
+    if(0 != CreateSocket(&serverSocket, AF_IPX, SOCK_STREAM, NSPROTO_SPX)){
         return -1;
     }
     printf("CreateSocket() is OK...\n");

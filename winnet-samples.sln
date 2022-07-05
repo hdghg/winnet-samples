@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\common.vcp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spxclient", "spxclient\spxclient.vcproj", "{4308B1B4-5811-4DE7-933C-F68CD832A885}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcpserv", "tcpserv\tcpserv.vcproj", "{98E6410F-0D6F-4B00-87F3-357FF01D215C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +27,10 @@ Global
 		{4308B1B4-5811-4DE7-933C-F68CD832A885}.Debug|Win32.Build.0 = Debug|Win32
 		{4308B1B4-5811-4DE7-933C-F68CD832A885}.Release|Win32.ActiveCfg = Release|Win32
 		{4308B1B4-5811-4DE7-933C-F68CD832A885}.Release|Win32.Build.0 = Release|Win32
+		{98E6410F-0D6F-4B00-87F3-357FF01D215C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{98E6410F-0D6F-4B00-87F3-357FF01D215C}.Debug|Win32.Build.0 = Debug|Win32
+		{98E6410F-0D6F-4B00-87F3-357FF01D215C}.Release|Win32.ActiveCfg = Release|Win32
+		{98E6410F-0D6F-4B00-87F3-357FF01D215C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

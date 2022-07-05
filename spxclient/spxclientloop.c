@@ -11,7 +11,7 @@
 #include "conv.h"
 
 char * nbReadLine(char *dest) {
-    int len;
+    size_t len;
     char c;
     while (_kbhit()) {
         len = strlen(dest);
@@ -85,11 +85,11 @@ int ClientMainLoop(char *serverAddressStr) {
 
     if (serverAddressStr == NULL) {
         printf("Server Address must be specified.... Exiting\n");
-        return;
+        return 0;
     }
-    if(0 != CreateSocket(&clientSocket, SOCK_STREAM, NSPROTO_SPX)) {
+    if(0 != CreateSocket(&clientSocket, AF_IPX, SOCK_STREAM, NSPROTO_SPX)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
-        return;
+        return -1;
     }
     printf("CreateSocket() is OK...\n");
     if (0 != SwitchToNonBlocking(&clientSocket)) {
