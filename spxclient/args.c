@@ -19,4 +19,5 @@ int ParseArgs(char **serverAddress, int argc, char **argv) {
                 break;
         }
     }
+    return 0;
 }

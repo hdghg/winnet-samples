@@ -20,7 +20,7 @@ int printAdapters() {
     }
     tcpAddress.sin_family = AF_INET;
     tcpAddress.sin_addr.s_addr = inet_addr("0.0.0.0");;
-    tcpAddress.sin_port = htons("7171");
+    tcpAddress.sin_port = htons(7171);
 
     if (SOCKET_ERROR == /*WinSock2.*/bind(s, (SOCKADDR *) &tcpAddress, tcpAddressSize)) {
         printf("Could not resolve adapters. ");

@@ -87,6 +87,15 @@ int BindSocket(
     return 0;
 }
 
+int BindTcpSocket(IN SOCKET *socket, IN SOCKADDR_IN *psa) {
+    if (SOCKET_ERROR == /*WinSock2.*/bind(*socket, (SOCKADDR *) &psa, sizeof(SOCKADDR_IN))) {
+        return -1;
+    }
+    // TODO: Implement output of bound socket address
+    printf("Bound to Local Address: <not implemented>\n");
+    return 0;
+}
+
 
 
 // Print all available adapters for the socket. Only works with datagram socket
