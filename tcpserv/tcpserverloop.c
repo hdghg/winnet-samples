@@ -7,14 +7,23 @@
 #include "socket/nbsocket.h"
 #include "conv.h"
 
+void closeOneSocket(SOCKET clientSockets[], int index, int size) {
+    SOCKET socket;
+    socket = clientSockets[index];
+    clientSockets[index] = clientSockets[size - 1];
+    clientSockets[size - 1] = socket;
+    CloseSocket(&socket);
+}
+
 void mainLoop(SOCKET *serverSocket) {
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
-    SOCKET clientSockets[16];
-    SOCKET socket;
-    int clientsCount = 16;
+    SOCKET clientSockets[SERVER_MAXCONN];
+    int clientsCount = SERVER_MAXCONN;
     int counter;
     int operationResult;
+    SOCKADDR_IN socketAddress;
+    int addressSize = sizeof(SOCKADDR_IN);
 
     while (0 < clientsCount) {
         clientsCount--;
@@ -33,11 +42,7 @@ void mainLoop(SOCKET *serverSocket) {
                     } else {
                         printf("Connection terminated\n");
                     }
-                    socket = clientSockets[counter];
-                    clientSockets[counter] = clientSockets[clientsCount - 1];
-                    clientSockets[clientsCount - 1] = socket;
-                    CloseSocket(&socket);
-                    clientsCount--;
+                    closeOneSocket(clientSockets, counter, clientsCount--);
                     operationResult = -1;
                     break;
                 }
@@ -51,20 +56,16 @@ void mainLoop(SOCKET *serverSocket) {
             for (counter = 0; counter < clientsCount; counter++) {
                 bytesExchanged = /*sendreceive.*/SendData(clientSockets[counter], byteBuffer, MESSAGE_SIZE);
                 if (1 > bytesExchanged) {
-                    socket = clientSockets[counter];
-                    clientSockets[counter] = clientSockets[clientsCount - 1];
-                    clientSockets[clientsCount - 1] = socket;
-                    CloseSocket(&socket);
-                    clientsCount--;
+                    closeOneSocket(clientSockets, counter, clientsCount--);
                 }
             }
         }
 
-        if (16 <= clientsCount) {
+        if (SERVER_MAXCONN <= clientsCount) {
             continue;
         }
         clientSockets[clientsCount] =
-            /*WinSock2.*/accept(*serverSocket, NULL, NULL);
+            /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &socketAddress, &addressSize);
         if (INVALID_SOCKET == clientSockets[clientsCount]) {
             if (WSAEWOULDBLOCK != WSAGetLastError()) {
                 printf("accept() failed: %d\n", WSAGetLastError());
@@ -72,7 +73,7 @@ void mainLoop(SOCKET *serverSocket) {
             }
         } else {
             clientsCount++;
-            printf("Client %s connected\n", "TODO: implement");
+            printf("Client %s connected\n", inet_ntoa(socketAddress.sin_addr));
         }
     }
 }

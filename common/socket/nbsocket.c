@@ -8,7 +8,7 @@
 #define EXCEPTION -2;
 #define NOT_READY -3;
 
-int AwaitReadiness(__in SOCKET *readSocket, __in SOCKET *writeSocket, __in BOOL verbose) {
+int AwaitReadiness(IN SOCKET *readSocket, IN SOCKET *writeSocket, IN BOOL verbose) {
     int res;
     struct timeval waitTime = {0, 100000};
     struct fd_set readSocketSet;
@@ -46,7 +46,7 @@ int AwaitReadiness(__in SOCKET *readSocket, __in SOCKET *writeSocket, __in BOOL 
     }
 }
 
-int NbCheckReadiness(__in SOCKET *readSocket, __in SOCKET *writeSocket, __in BOOL verbose) {
+int NbCheckReadiness(IN SOCKET *readSocket, IN SOCKET *writeSocket, IN BOOL verbose) {
     int res;
     struct timeval waitTime = {0, 1000};
     struct fd_set readSocketSet;
