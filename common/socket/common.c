@@ -88,11 +88,12 @@ int BindSocket(
 }
 
 int BindTcpSocket(IN SOCKET *socket, IN SOCKADDR_IN *psa) {
-    if (SOCKET_ERROR == /*WinSock2.*/bind(*socket, (SOCKADDR *) &psa, sizeof(SOCKADDR_IN))) {
+    int tcpAddressSize = sizeof(SOCKADDR_IN);
+    if (SOCKET_ERROR == /*WinSock2.*/bind(*socket, (SOCKADDR *) psa, tcpAddressSize)) {
         return -1;
     }
-    // TODO: Implement output of bound socket address
-    printf("Bound to Local Address: <not implemented>\n");
+    /*WinSock2.*/getsockname(*socket, (SOCKADDR *) psa, &tcpAddressSize);
+    printf("Bound to %s\n", inet_ntoa(psa->sin_addr));
     return 0;
 }
 
@@ -107,7 +108,6 @@ int EnumerateAdapters(IN SOCKET *sock) {
     // Call getsockopt() see the total number of adapters
     cb = sizeof(nAdapters);
     ret = getsockopt(*sock, NSPROTO_IPX, IPX_MAX_ADAPTER_NUM, (char *) &nAdapters, &cb);
-    ret = getsockopt(*sock, SOL_SOCKET, IPX_MAX_ADAPTER_NUM, (char *) &nAdapters, &cb);
     if (ret == SOCKET_ERROR) {
         printf("getsockopt(IPX_MAX_ADAPTER_NUM) failed with error code %ld\n", WSAGetLastError());
         return -1;

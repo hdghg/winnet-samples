@@ -83,15 +83,20 @@ void mainLoop(SOCKET *serverSocket) {
 
 int ServerMainLoop() {
     SOCKET serverSocket = INVALID_SOCKET;
+    int tcpAddressSize = sizeof(SOCKADDR_IN);
     SOCKADDR_IN serverIpAddress;
-
-    serverIpAddress.sin_family = AF_INET;
-    serverIpAddress.sin_addr.s_addr = inet_addr("0.0.0.0");
-    serverIpAddress.sin_port = htons(7171);
+    {
+        serverIpAddress.sin_family = AF_INET;
+        serverIpAddress.sin_addr.s_addr = inet_addr("0.0.0.0");
+        serverIpAddress.sin_port = htons(7171);
+    }
 
     if(0 != CreateSocket(&serverSocket, AF_INET, SOCK_STREAM, IPPROTO_TCP)){
+        printf("Couldn't create socket\n");
         return -1;
     }
+
+
     printf("CreateSocket() is OK...\n");
     if (0 != /*nbsocket.*/SwitchToNonBlocking(&serverSocket)) {
         printf("Couldn't switch socket to non-blocking mode...\n");
@@ -102,6 +107,8 @@ int ServerMainLoop() {
         printf("BindSocket() failed!\n");
         if (WSAEADDRINUSE == WSAGetLastError()) {
             printf("Address already in use!\n");
+        } else {
+            printf("Bind error: %ld!\n", WSAGetLastError());
         }
         return CloseSocket(&serverSocket);
     }

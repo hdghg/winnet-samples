@@ -26,7 +26,7 @@ int printAdapters() {
         printf("Could not resolve adapters. ");
         printf("bind() failed with error code %ld\n", WSAGetLastError());
     } else {
-        /*WinSock2.*/getsockname(*socket, (SOCKADDR *) &tcpAddress, &tcpAddressSize);
+        /*WinSock2.*/getsockname(s, (SOCKADDR *) &tcpAddress, &tcpAddressSize);
         printf("Bound to %s\n", inet_ntoa(tcpAddress.sin_addr));
         PrintAddresses();
     }
@@ -46,7 +46,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
         return -1;
     }
     printf("WSAStartup() is OK!\n");
-    printAdapters();
+    /*common.*/PrintAddresses();
 
     printf("Starting server...\n");
     /*tcpserverloop.*/ServerMainLoop();
