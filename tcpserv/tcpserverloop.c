@@ -8,11 +8,8 @@
 #include "conv.h"
 
 void mainLoop(SOCKET *serverSocket) {
-    int ipxAddressSize = sizeof(SOCKADDR_IPX);
-    SOCKADDR_IPX clientIpxAddress;
     int bytesExchanged;
     char byteBuffer[MAX_DATA_LEN];
-    char clientAddressStr[22];
     SOCKET clientSockets[16];
     SOCKET socket;
     int clientsCount = 16;
@@ -67,7 +64,7 @@ void mainLoop(SOCKET *serverSocket) {
             continue;
         }
         clientSockets[clientsCount] =
-            /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &clientIpxAddress, &ipxAddressSize);
+            /*WinSock2.*/accept(*serverSocket, NULL, NULL);
         if (INVALID_SOCKET == clientSockets[clientsCount]) {
             if (WSAEWOULDBLOCK != WSAGetLastError()) {
                 printf("accept() failed: %d\n", WSAGetLastError());
@@ -75,8 +72,7 @@ void mainLoop(SOCKET *serverSocket) {
             }
         } else {
             clientsCount++;
-            SockaddrIpxToA(clientAddressStr, clientIpxAddress);
-            printf("Client %s connected\n", clientAddressStr);
+            printf("Client %s connected\n", "TODO: implement");
         }
     }
 }
