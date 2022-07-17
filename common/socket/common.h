@@ -7,7 +7,7 @@
 
 #define MAX_DATA_LEN 64000
 #define MESSAGE_SIZE 128
-#define SERVER_MAXCONN 16
+#define SAMPLES_MAXCONN 16
 
 int CreateSocket(OUT SOCKET *sock, IN int family, IN int type, IN int protocol);
 void FillIpxAddress(OUT SOCKADDR_IPX *socketAddress, IN LPSTR address, IN LPSTR endpoint);

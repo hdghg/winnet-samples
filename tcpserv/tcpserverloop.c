@@ -15,69 +15,78 @@ void closeOneSocket(SOCKET clientSockets[], int index, int size) {
     CloseSocket(&socket);
 }
 
-void mainLoop(SOCKET *serverSocket) {
-    int bytesExchanged;
-    char byteBuffer[MAX_DATA_LEN];
-    SOCKET clientSockets[SERVER_MAXCONN];
-    int clientsCount = SERVER_MAXCONN;
-    int counter;
-    int operationResult;
+int tryAccept(SOCKET clientSockets[], SOCKET *serverSocket, int *size) {
     SOCKADDR_IN socketAddress;
     int addressSize = sizeof(SOCKADDR_IN);
+    clientSockets[*size] =
+        /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &socketAddress, &addressSize);
+    if (INVALID_SOCKET == clientSockets[*size]) {
+        if (WSAEWOULDBLOCK != WSAGetLastError()) {
+            printf("accept() failed: %d\n", WSAGetLastError());
+            return -1;
+        }
+    } else {
+        (*size)++;
+        printf("Client %s connected\n", inet_ntoa(socketAddress.sin_addr));
+    }
+    return 0;
+}
 
-    while (0 < clientsCount) {
-        clientsCount--;
-        clientSockets[clientsCount] = INVALID_SOCKET;
+void mainLoop(SOCKET *serverSocket) {
+    int bytesExchanged;
+    char byteBuffer[MESSAGE_SIZE + 1];
+    SOCKET clientSockets[SAMPLES_MAXCONN];
+    int clientsCount = SAMPLES_MAXCONN;
+    int counter;
+    int operationResult;
+    {
+        byteBuffer[MESSAGE_SIZE] = '\0';
+        while (0 < clientsCount) {
+            clientsCount--;
+            clientSockets[clientsCount] = INVALID_SOCKET;
+        }
     }
 
     while (TRUE) {
         operationResult = -1;
         for (counter = 0; counter < clientsCount; counter++) {
             operationResult = NbCheckReadiness(&clientSockets[counter], NULL, FALSE);
-            if (0 == operationResult) {
-                bytesExchanged = /*sendreceive.*/ReceiveData(clientSockets[counter], byteBuffer);
-                if (bytesExchanged < 1) {
-                    if (0 == bytesExchanged) {
-                        printf("Client went offline\n");
-                    } else {
-                        printf("Connection terminated\n");
-                    }
-                    closeOneSocket(clientSockets, counter, clientsCount--);
-                    operationResult = -1;
-                    break;
-                }
-                printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
-                break;
-            } else if (-3 != operationResult) {
+            if (-3 == operationResult) {
+                continue;
+            }
+            if (0 != operationResult) {
                 return;
             }
+            bytesExchanged = /*sendreceive.*/ReceiveData(clientSockets[counter], byteBuffer);
+            if (bytesExchanged < 1) {
+                printf(0 == bytesExchanged ? "Client went offline\n" : "Client terminated\n");
+                closeOneSocket(clientSockets, counter, clientsCount--);
+                operationResult = -1;
+                break;
+            }
+            printf("%d bytes of data received: %s\n", bytesExchanged, byteBuffer);
+            break;
         }
+        // If read successfully from any socket
         if (0 == operationResult) {
             for (counter = 0; counter < clientsCount; counter++) {
                 bytesExchanged = /*sendreceive.*/SendData(clientSockets[counter], byteBuffer, MESSAGE_SIZE);
-                if (1 > bytesExchanged) {
+                if (bytesExchanged < 1) {
                     closeOneSocket(clientSockets, counter, clientsCount--);
                 }
             }
         }
 
-        if (SERVER_MAXCONN <= clientsCount) {
+        if (SAMPLES_MAXCONN <= clientsCount) {
             continue;
         }
-        clientSockets[clientsCount] =
-            /*WinSock2.*/accept(*serverSocket, (SOCKADDR *) &socketAddress, &addressSize);
-        if (INVALID_SOCKET == clientSockets[clientsCount]) {
-            if (WSAEWOULDBLOCK != WSAGetLastError()) {
-                printf("accept() failed: %d\n", WSAGetLastError());
-                return;
-            }
-        } else {
-            clientsCount++;
-            printf("Client %s connected\n", inet_ntoa(socketAddress.sin_addr));
+        if (-1 == tryAccept(clientSockets, serverSocket, &clientsCount)) {
+            return;
         }
     }
 }
 
+// Initialize server and pass control to the inner server loop
 int ServerMainLoop() {
     SOCKET serverSocket = INVALID_SOCKET;
     int tcpAddressSize = sizeof(SOCKADDR_IN);
