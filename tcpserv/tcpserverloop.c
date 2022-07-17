@@ -15,7 +15,7 @@ void closeOneSocket(SOCKET clientSockets[], int index, int size) {
     CloseSocket(&socket);
 }
 
-int tryAccept(SOCKET clientSockets[], SOCKET *serverSocket, int *size) {
+int tryAccept(IN SOCKET *serverSocket, IN OUT SOCKET clientSockets[], IN OUT int *size) {
     SOCKADDR_IN socketAddress;
     int addressSize = sizeof(SOCKADDR_IN);
     clientSockets[*size] =
@@ -39,7 +39,11 @@ void mainLoop(SOCKET *serverSocket) {
     int clientsCount = SAMPLES_MAXCONN;
     int counter;
     int operationResult;
+    struct timeval waitTime = {0, 1000};
+    struct fd_set readSocketSet;
     {
+        FD_ZERO(&readSocketSet);
+        FD_SET(*serverSocket, &readSocketSet);
         byteBuffer[MESSAGE_SIZE] = '\0';
         while (0 < clientsCount) {
             clientsCount--;
@@ -80,8 +84,13 @@ void mainLoop(SOCKET *serverSocket) {
         if (SAMPLES_MAXCONN <= clientsCount) {
             continue;
         }
-        if (-1 == tryAccept(clientSockets, serverSocket, &clientsCount)) {
-            return;
+        if (select(0, &readSocketSet, NULL, NULL, &waitTime) > 0) {
+            if (-1 == tryAccept(serverSocket, clientSockets, &clientsCount)) {
+                return;
+            }
+        } else {
+            FD_ZERO(&readSocketSet);
+            FD_SET(*serverSocket, &readSocketSet);
         }
     }
 }
