@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="spxserv"
-	ProjectGUID="{9BA665A0-1559-4BE2-B91C-8CE32501EF6C}"
-	RootNamespace="spxserv"
+	Name="tcpclient"
+	ProjectGUID="{49A95622-8F21-4367-AA3A-B5E6E288D5B9}"
+	RootNamespace="tcpclient"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -117,9 +117,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -182,14 +181,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\spxserv.c"
-				>
-			</File>
-			<File
-				RelativePath=".\spxserverloop.c"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.c"
 				>
 				<FileConfiguration
@@ -209,16 +200,16 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\tcpclient.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\spxserverloop.h"
-				>
-			</File>
 			<File
 				RelativePath=".\stdafx.h"
 				>
