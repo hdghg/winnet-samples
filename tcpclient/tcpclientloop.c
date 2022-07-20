@@ -50,18 +50,23 @@ int mainLoop(SOCKET *socket) {
 }
 
 int ClientMainLoop(char *serverAddressStr) {
-    int ipxAddressSize = sizeof(SOCKADDR_IPX);
+    int tcpAddressSize = sizeof(SOCKADDR_IN);
     SOCKET clientSocket = INVALID_SOCKET;
-    SOCKADDR_IPX localIpxAddress;
-    SOCKADDR_IPX serverIpxAddress;
+    SOCKADDR_IN serverTcpAddress;
     char *serverEndpointStr = "7171";
     int connectResult;
+    {
+        serverTcpAddress.sin_family = AF_INET;
+        serverTcpAddress.sin_port = htons(7171);
+    }
 
     if (serverAddressStr == NULL) {
         printf("Server Address must be specified.... Exiting\n");
         return 0;
+    } else {
+        serverTcpAddress.sin_addr.s_addr = inet_addr(serverAddressStr);
     }
-    if(0 != CreateSocket(&clientSocket, AF_IPX, SOCK_STREAM, NSPROTO_SPX)) {
+    if(0 != CreateSocket(&clientSocket, AF_INET, SOCK_STREAM, IPPROTO_TCP)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return -1;
     }
@@ -70,14 +75,8 @@ int ClientMainLoop(char *serverAddressStr) {
         printf("Couldn't switch socket to non-blocking mode...\n");
         return CloseSocket(&clientSocket);
     }
-    if(0 != BindSocket(&clientSocket, &localIpxAddress, NULL, NULL)) {
-        printf("BindSocket() failed!\n");
-        return CloseSocket(&clientSocket);
-    }
-    printf("BindSocket() is OK!\n");
-    FillIpxAddress(&serverIpxAddress, serverAddressStr, serverEndpointStr);
     printf("Connecting to Server: %s\n", serverAddressStr);
-    connectResult = /*WinSock2.*/connect(clientSocket, (SOCKADDR *) &serverIpxAddress, ipxAddressSize);
+    connectResult = /*WinSock2.*/connect(clientSocket, (SOCKADDR *) &serverTcpAddress, tcpAddressSize);
     if (SOCKET_ERROR == connectResult && WSAEWOULDBLOCK != WSAGetLastError()) {
         printf("Failed to issue a connect request %d\n", WSAGetLastError());
         return CloseSocket(&clientSocket);

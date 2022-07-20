@@ -110,8 +110,6 @@ int ServerMainLoop() {
         printf("Couldn't create socket\n");
         return -1;
     }
-
-
     printf("CreateSocket() is OK...\n");
     if (0 != /*nbsocket.*/SwitchToNonBlocking(&serverSocket)) {
         printf("Couldn't switch socket to non-blocking mode...\n");

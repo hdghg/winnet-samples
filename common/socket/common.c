@@ -144,7 +144,6 @@ int CloseSocket(IN SOCKET *socket) {
 
 int PrintAddresses() {
     struct addrinfo hints;
-    int iResult;
     INT iRetval;
     DWORD dwRetval;
     int i = 1;

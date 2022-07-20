@@ -155,6 +155,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\io.c"
+				>
+			</File>
+			<File
 				RelativePath=".\socket\nbsocket.c"
 				>
 			</File>
@@ -182,6 +186,10 @@
 			</File>
 			<File
 				RelativePath=".\conv.h"
+				>
+			</File>
+			<File
+				RelativePath=".\io.h"
 				>
 			</File>
 			<File
