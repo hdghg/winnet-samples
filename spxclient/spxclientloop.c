@@ -12,11 +12,11 @@
 
 int mainLoop(SOCKET *socket) {
     int bytesExchanged;
-    char receiveBuffer[MAX_DATA_LEN];
-    char sendBuffer[MAX_DATA_LEN];
+    char receiveBuffer[MESSAGE_SIZE + 1];
+    char sendBuffer[MESSAGE_SIZE + 1];
     int operationResult;
 
-    memset(&sendBuffer, '\0', MAX_DATA_LEN);
+    memset(&sendBuffer, '\0', MESSAGE_SIZE);
     while (TRUE) {
         if (/*io.*/NbReadLine(sendBuffer)) {
             memset(&sendBuffer[strlen(sendBuffer)], '\0', MESSAGE_SIZE);

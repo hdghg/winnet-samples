@@ -12,11 +12,11 @@ void mainLoop(SOCKET *serverSocket) {
     int ipxAddressSize = sizeof(SOCKADDR_IPX);
     SOCKADDR_IPX clientIpxAddress;
     int bytesExchanged;
-    char byteBuffer[MAX_DATA_LEN];
+    char byteBuffer[MESSAGE_SIZE + 1];
     char clientAddressStr[22];
-    SOCKET clientSockets[16];
+    SOCKET clientSockets[SAMPLES_MAXCONN];
     SOCKET socket;
-    int clientsCount = 16;
+    int clientsCount = SAMPLES_MAXCONN;
     int counter;
     int operationResult;
 
@@ -64,7 +64,7 @@ void mainLoop(SOCKET *serverSocket) {
             }
         }
 
-        if (16 <= clientsCount) {
+        if (SAMPLES_MAXCONN <= clientsCount) {
             continue;
         }
         clientSockets[clientsCount] =
