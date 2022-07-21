@@ -1,9 +1,6 @@
 #include "stdafx.h"
 
 #include <winsock2.h>
-#include <ws2tcpip.h>
-#include <wsipx.h>
-#include <wsnwlink.h>
 
 #include "socket/common.h"
 #include "tcpserverloop.h"

@@ -3,7 +3,6 @@
 #include <winsock2.h>
 #include <wsipx.h>
 #include <windows.h>
-#include <conio.h>
 
 #include "socket/common.h"
 #include "socket/sendreceive.h"
