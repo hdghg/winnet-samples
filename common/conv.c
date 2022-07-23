@@ -33,12 +33,12 @@ void IpxAddressToA(char *dest, unsigned char *lpsNetnum, unsigned char *lpsNoden
 
     // Print the network number first
     for (i=0; i < 4 ;i++) {
-        sprintf((char *) dest + 2 * i, "%02X", (UCHAR)lpsNetnum[i]);
+        sprintf_s((char *) dest + 2 * i, 2, "%02X", (UCHAR)lpsNetnum[i]);
     }
-    sprintf((char *) dest + 8 ,".");
+    sprintf_s((char *) dest + 8, 2 ,".");
 
     // Print the node number
     for (i=0; i < 6 ;i++) {
-        sprintf((char *) dest + 2 * i + 9, "%02X", (UCHAR) lpsNodenum[i]);
+        sprintf_s((char *) dest + 2 * i + 9, 2, "%02X", (UCHAR) lpsNodenum[i]);
     }
 }
