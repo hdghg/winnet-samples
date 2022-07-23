@@ -9,7 +9,7 @@
 #define SAMPLES_MAXCONN 16
 
 int CreateSocket(OUT SOCKET *sock, IN int family, IN int type, IN int protocol);
-void FillIpxAddress(OUT SOCKADDR_IPX *socketAddress, IN LPSTR address, IN LPSTR endpoint);
+void FillIpxAddress(OUT SOCKADDR_IPX *socketAddress, IN char *address, IN char *endpoint);
 void SockaddrIpxToA(OUT char *dest, IN SOCKADDR_IPX ipxAddress);
 int BindSocket(IN SOCKET *sock, OUT SOCKADDR_IPX *psa, IN LPSTR address, IN LPSTR endpoint);
 int BindTcpSocket(IN SOCKET *sock, IN SOCKADDR_IN *psa);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <winsock2.h>
+
 #include <windows.h>
 
 #include "socket/common.h"
@@ -61,9 +62,9 @@ int ClientMainLoop(char *serverAddressStr) {
     if (serverAddressStr == NULL) {
         printf("Server Address must be specified.... Exiting\n");
         return 0;
-    } else {
-        serverTcpAddress.sin_addr.s_addr = inet_addr(serverAddressStr);
     }
+    serverTcpAddress.sin_addr.s_addr = inet_addr(serverAddressStr);
+
     if(0 != CreateSocket(&clientSocket, AF_INET, SOCK_STREAM, IPPROTO_TCP)) {
         printf("CreateSocket() failed with error code %ld\n", WSAGetLastError());
         return -1;
