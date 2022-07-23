@@ -1,6 +1,6 @@
 #ifndef SENDRECEIVE_H
 #define SENDRECEIVE_H
-#include "stdafx.h"
+#include "../stdafx.h"
 
 #include <winsock2.h>
 

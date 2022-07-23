@@ -1,11 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
-#include "stdafx.h"
+#include "../stdafx.h"
 
 #include <winsock2.h>
 #include <wsipx.h>
 
-#define MAX_DATA_LEN 64000
 #define MESSAGE_SIZE 128
 #define SAMPLES_MAXCONN 16
 

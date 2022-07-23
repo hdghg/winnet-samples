@@ -28,7 +28,7 @@ int mainLoop(SOCKET *socket) {
                 return 0;
             }
             printf("%d bytes of data sent\n", bytesExchanged);
-            memset(&sendBuffer, '\0', MAX_DATA_LEN);
+            memset(&sendBuffer, '\0', MESSAGE_SIZE + 1);
         }
         operationResult = NbCheckReadiness(socket, NULL, FALSE);
         if (0 == operationResult) {

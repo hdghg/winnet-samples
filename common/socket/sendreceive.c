@@ -2,12 +2,14 @@
 
 #include <winsock2.h>
 
+#include "common.h"
+
 // When calling recv in blocking mode, the operation would block
 // until socket is closed on the other side, or own buffer is full.
 // If socket has been closed on the other side, recv can be called
 // many times without any error, each time 0 would be returned
 int ReceiveData(SOCKET s, char *buffer) {
-    int received, totalBytes = 0, leftBytes = 128;
+    int received, totalBytes = 0, leftBytes = MESSAGE_SIZE;
     while (leftBytes > 0) {
         received = /*WinSock2.*/recv(s, &buffer[totalBytes], leftBytes, 0);
         if (SOCKET_ERROR == received) {

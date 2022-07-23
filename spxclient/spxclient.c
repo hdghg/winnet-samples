@@ -8,7 +8,7 @@
 
 #pragma comment(lib, "WS2_32")
 
-char *defaultAddress = "";
+char *defaultAddress = "1234CDEF.000000000002";
 
 int main(int argc, char **argv) {
     WSADATA wsd;

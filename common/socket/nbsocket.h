@@ -1,6 +1,6 @@
 #ifndef NBSOCKET_H
 #define NBSOCKET_H
-#include "stdafx.h"
+#include "../stdafx.h"
 
 #include <winsock2.h>
 
